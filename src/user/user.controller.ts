@@ -7,10 +7,14 @@ import {
   HttpStatus,
 } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
+import { PasswordService } from '../password/password.service';
 
 @Controller('user')
 export class UserController {
-  constructor(private readonly prismaService: PrismaService) {}
+  constructor(
+    private readonly prismaService: PrismaService,
+    private encryptionService: PasswordService,
+  ) {}
 
   @Get()
   async getUsers() {
@@ -29,7 +33,7 @@ export class UserController {
     @Body() userData: { name: string; email: string; password: string },
   ) {
     try {
-      const { email } = userData;
+      const { name, email, password } = userData;
       const userExists = await this.prismaService.user.findUnique({
         where: { email },
       });
@@ -39,8 +43,10 @@ export class UserController {
           HttpStatus.CONFLICT,
         );
       }
+      const encryptedPassword = this.encryptionService.encrypt(password);
+      console.log(password, encryptedPassword);
       return this.prismaService.user.create({
-        data: userData,
+        data: { name: name, email: email, password: encryptedPassword },
       });
     } catch (error) {
       throw new HttpException(

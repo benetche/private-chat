@@ -19,7 +19,3 @@ model User {
   email     String @unique
   password  String 
 }
-
-model Message {
-  id          String     @id @default(auto()) @map("_id") @db.ObjectId
-}
